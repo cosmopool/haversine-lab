@@ -17,26 +17,28 @@ i32 main(int argc, char *argv[]) {
       errno = 0;
       char *end;
       const i64 num = strtol(argv[i], &end, 10);
+
       if (end == argv[i]) {
         printf("must provide sample_count\n");
         printUsageAndExit();
       }
+
       if (errno != 0) {
         perror("argument error: sample_count:");
         exit(1);
       }
+
       errno = 0;
       ASSERT(num >= 0, "sample count must be positive");
+      ASSERT(num <= 9999999999, "too many samples");
       sample_count = (u64)num;
-      if (sample_count > 9999999999) {
-        printf("too many sample count. max samples is 9,999,999,999\n");
-        exit(1);
-      }
+
       continue;
     }
 
     printUsageAndExit();
   }
+  (void)sample_count;
 
   return R_SUCCESS;
 }
