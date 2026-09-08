@@ -1,0 +1,6 @@
+ColumnLimit: 0
+AllowShortFunctionsOnASingleLine: None
+AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+BreakStringLiterals: false
