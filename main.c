@@ -12,6 +12,7 @@ void printUsageAndExit() {
 i32 main(int argc, char *argv[]) {
   u64 sample_count = 0;
 
+  // argument parsing
   for (i32 i = 1; i < argc; i++) {
     if (i == 1) {
       errno = 0;
@@ -38,7 +39,6 @@ i32 main(int argc, char *argv[]) {
 
     printUsageAndExit();
   }
-  (void)sample_count;
 
   return R_SUCCESS;
 }
