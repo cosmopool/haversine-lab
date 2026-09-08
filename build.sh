@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "building with debug symbols..."
-cc -o generator main.c \
+cc -o generator src/main.c \
    -g -DDEBUG \
    -Wall \
    -Wextra \
