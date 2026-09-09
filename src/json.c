@@ -117,9 +117,9 @@ static bool psConsumeString(Parser *p) {
             continue;
 
           default:
-            // if (!SUPPRESS_ERRORS) {
+            if (!SUPPRESS_ERRORS) {
               fprintf(stderr, "ERROR: invalid string: invalid hex code '%c' at %d:%d.\n", current, p->line, p->line_offset);
-            // }
+            }
             return false;
           }
         }
