@@ -57,14 +57,14 @@ static u8 psConsume(Parser *p) {
   return c;
 }
 
-static bool psExpectNext(Parser p, u8 exp) {
-  u8 next = psPeek(p);
-  if (exp == next) return true;
-  if (!SUPPRESS_ERRORS) {
-    fprintf(stderr, "ERROR: invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
-  }
-  return false;
-}
+// static bool psExpectNext(Parser p, u8 exp) {
+//   u8 next = psPeek(p);
+//   if (exp == next) return true;
+//   if (!SUPPRESS_ERRORS) {
+//     fprintf(stderr, "ERROR: invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
+//   }
+//   return false;
+// }
 
 static bool psEquals(u8 actual, u8 exp) {
   if (exp == actual) return true;
@@ -84,8 +84,54 @@ static void psConsumeWhitespace(Parser *p) {
 static bool psConsumeString(Parser *p) {
   u8 current = psCurrent(*p);
   psEquals(current, '"');
-  while (current != '\0' && current != ':') {
-    current = psConsume(p);
+  while ((current = psConsume(p)) != '\0' && current != '"') {
+    if (isalpha(current)) {
+      continue;
+    }
+
+    else if (iscntrl(current)) {
+      if (!SUPPRESS_ERRORS) {
+        fprintf(stderr, "ERROR: invalid string: control character '%c' at %d:%d.\n", current, p->line, p->line_offset);
+      }
+      return false;
+    }
+
+    else if (current == '\\') {
+      switch (current = psConsume(p)) {
+      case '\"':
+      case '\\':
+      case '/':
+      case '\b':
+      case '\f':
+      case '\n':
+      case '\r':
+      case '\t':
+        break;
+
+      case 'u':
+        for (u32 i = 0; i < 4; i++) {
+          switch (current = psConsume(p)) {
+          case 'A' ... 'F':
+          case 'a' ... 'f':
+          case '0' ... '9':
+            continue;
+
+          default:
+            // if (!SUPPRESS_ERRORS) {
+              fprintf(stderr, "ERROR: invalid string: invalid hex code '%c' at %d:%d.\n", current, p->line, p->line_offset);
+            // }
+            return false;
+          }
+        }
+        break;
+
+      default:
+        if (!SUPPRESS_ERRORS) {
+          fprintf(stderr, "ERROR: invalid string: unsupported escape '%c' at %d:%d.\n", current, p->line, p->line_offset);
+        }
+        break;
+      }
+    }
   }
   return true;
 }
@@ -106,7 +152,8 @@ bool jsonParse(String json) {
     case '"':
       if (!psConsumeString(&p)) return false;
       psConsumeWhitespace(&p);
-      if (!psExpectNext(p, ':')) return false;
+      current = psConsume(&p);
+      if (!psEquals(current, ':')) return false;
       break;
 
     case ':':

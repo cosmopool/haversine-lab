@@ -68,6 +68,51 @@ GREATEST_TEST alphanumeric_string_passes(void) {
   GREATEST_PASS();
 }
 
+GREATEST_TEST escape_in_key_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\\"b\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\\\\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\zb\": 1}")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST escape_in_value_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\": \"b\\\"c\"}")));
+  GREATEST_PASS();
+}
+
+// --- unicode escape (\uHHHH): valid cases ---
+// NOTE: C string literals need "\\u" so the compiler emits a literal
+// backslash + 'u' instead of a C universal-character escape.
+
+GREATEST_TEST unicode_escape_in_key_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\u1234b\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"\\u0041\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\u0000b\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\u00e9b\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\u00E9b\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"a\\uFFFFb\": 1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\"\\u0041\\u0042\": 1}")));
+  GREATEST_PASS();
+}
+
+// --- unicode escape (\uHHHH): invalid cases ---
+
+GREATEST_TEST unicode_escape_truncated_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u123\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u12\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u1\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u\": 1}")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST unicode_escape_non_hex_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u12G4\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u12z4\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\uzzzz\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\\u    \": 1}")));
+  GREATEST_PASS();
+}
+
 // --- string: invalid cases ---
 
 GREATEST_TEST unterminated_string_key_fails(void) {
@@ -84,12 +129,46 @@ GREATEST_TEST missing_colon_after_key_fails(void) {
   GREATEST_PASS();
 }
 
+GREATEST_TEST control_chars_in_string_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"\n\"}")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST control_chars_in_key_fail(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\nb\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\tb\": 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\rb\": 1}")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST control_chars_in_value_fail(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\": \"b\nc\"}")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST embedded_nul_in_key_fails(void) {
+  // NOTE: mclStringNewC can't express this — strlen stops at NUL.
+  char buf[] = {'{', '"', 'a', '\0', 'b', '"', ':', ' ', '1', '}'};
+  String s = {.len = sizeof(buf), .data = buf};
+  GREATEST_ASSERT_EQ(false, jsonParse(s));
+  GREATEST_PASS();
+}
+
 // --- suites ---
 
 GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(alphanumeric_string_passes);
   GREATEST_RUN_TEST(unterminated_string_key_fails);
   GREATEST_RUN_TEST(missing_colon_after_key_fails);
+  GREATEST_RUN_TEST(escape_in_key_passes);
+  GREATEST_RUN_TEST(escape_in_value_passes);
+  GREATEST_RUN_TEST(unicode_escape_in_key_passes);
+  GREATEST_RUN_TEST(unicode_escape_truncated_fails);
+  GREATEST_RUN_TEST(unicode_escape_non_hex_fails);
+  GREATEST_RUN_TEST(control_chars_in_string_fails);
+  GREATEST_RUN_TEST(control_chars_in_key_fail);
+  GREATEST_RUN_TEST(control_chars_in_value_fail);
+  GREATEST_RUN_TEST(embedded_nul_in_key_fails);
 }
 
 GREATEST_SUITE(empty_object_suite) {
