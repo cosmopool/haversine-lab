@@ -10,6 +10,7 @@
 
 #define EARTH_RADIUS 6372.8
 #define REGIONS_COUNT 32
+#define FILE_NAME "samples"
 
 static u8 err = 0;
 
@@ -108,14 +109,14 @@ i32 main(int argc, char *argv[]) {
   Sample *samples = (Sample *)malloc(sample_count * sizeof(Sample));
   bzero(samples, sample_count);
 
-  FILE *samples_file = fopen("samples.json", "w+");
+  FILE *samples_file = fopen(FILE_NAME".json", "w+");
   if (!samples_file) {
     perror("fopen: samples.json coordinates file");
     err = 1;
     goto deinit;
   }
 
-  FILE *haversine_file = fopen("results.bin", "w+");
+  FILE *haversine_file = fopen(FILE_NAME".bin", "w+");
   if (!samples_file) {
     perror("fopen: haversine results binary file");
     err = 1;

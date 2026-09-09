@@ -1,5 +1,9 @@
 #!/bin/sh
 
+echo "cleaning old files..."
+rm *.bin
+rm *.json
+
 echo "building with debug symbols..."
 cc -o generator src/main.c \
    -g -DDEBUG \
