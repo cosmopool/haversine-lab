@@ -46,6 +46,14 @@ static u8 psConsume(Parser *p) {
     p->cursor++;
     p->line_offset++;
   }
+  if (c == '\n') {
+    p->line_offset = 0;
+    // skip consecutive newlines
+    while (psPeek(*p) == '\n') {
+      p->line++;
+      p->cursor++;
+    }
+  }
   return c;
 }
 
@@ -58,12 +66,14 @@ static bool psEquals(u8 actual, u8 exp) {
 }
 
 static void psConsumeWhitespace(Parser *p) {
-  while (isspace(psCurrent(*p))) p->cursor++;
+  while (isspace(psCurrent(*p))) {
+    p->cursor++;
+    p->line_offset++;
+  }
 }
 
 bool jsonParse(String json) {
   Parser p = {.data = (u8 *)json.data, .len = json.len, .cursor = 0};
-  (void)psPeek(p);
 
   psConsumeWhitespace(&p);
   u8 initial = psConsume(&p);

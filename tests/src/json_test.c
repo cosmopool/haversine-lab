@@ -52,6 +52,14 @@ GREATEST_TEST trailing_garbage_fails(void) {
   GREATEST_PASS();
 }
 
+// --- newline collapsing ---
+
+GREATEST_TEST parse_object_with_consecutive_newlines(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\n}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(mclStringNewC("{\n\n\n}")));
+  GREATEST_PASS();
+}
+
 GREATEST_SUITE(empty_object_suite) {
   GREATEST_RUN_TEST(empty_object_bare_passes);
   GREATEST_RUN_TEST(empty_object_with_inner_space_passes);
@@ -60,6 +68,7 @@ GREATEST_SUITE(empty_object_suite) {
   GREATEST_RUN_TEST(unterminated_open_brace_fails);
   GREATEST_RUN_TEST(missing_open_brace_fails);
   GREATEST_RUN_TEST(trailing_garbage_fails);
+  GREATEST_RUN_TEST(parse_object_with_consecutive_newlines);
 }
 
 GREATEST_MAIN_DEFS();
