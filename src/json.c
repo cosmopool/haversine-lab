@@ -28,7 +28,7 @@ typedef struct {
 } Parser;
 
 static u8 psCurrent(Parser p) {
-  if (p.cursor > p.len) return '\0';
+  if (p.cursor >= p.len) return '\0';
   u8 c = p.data[p.cursor];
   return c;
 }
