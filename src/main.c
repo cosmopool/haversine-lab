@@ -123,7 +123,7 @@ u32 parseInt(const char *str, i64 *out) {
 i32 main(int argc, char *argv[]) {
   u64 sample_count = 0;
   bool verbose = false;
-  u64 user_seed = 0;
+  u64 user_seed = 1923781450;
 
   if (argc == 1) {
     printUsageAndExit();
@@ -195,7 +195,7 @@ i32 main(int argc, char *argv[]) {
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   if (pair_per_region == 0) pair_per_region = 1;
-  printf("pairs per region: %d\n", pair_per_region);
+  if (verbose) printf("pairs per region: %d\n", pair_per_region);
   fprintf(samples_file, "{\"pairs\": [\n");
   for (u32 i = 0; i < sample_count; i++) {
     // select region
@@ -245,6 +245,7 @@ i32 main(int argc, char *argv[]) {
   }
   fprintf(samples_file, "]}");
 
+  printf("random seed: %ld\n", user_seed);
   printf("haversine sum: %f\n", haversine_sum);
   printf("haversine average: %f\n", haversine_sum / sample_count);
 
