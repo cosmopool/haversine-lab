@@ -194,6 +194,7 @@ i32 main(int argc, char *argv[]) {
   u32 haversine_file_cursor = 0;
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
+  if (pair_per_region == 0) pair_per_region = 1;
   printf("pairs per region: %d\n", pair_per_region);
   fprintf(samples_file, "{\"pairs\": [\n");
   for (u32 i = 0; i < sample_count; i++) {
