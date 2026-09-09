@@ -5,7 +5,7 @@ rm *.bin
 rm *.json
 
 echo "building with debug symbols..."
-cc -o generator src/main.c \
+cc -o generator src/generator.c \
    -g -DDEBUG \
    -Wall \
    -Wextra \
