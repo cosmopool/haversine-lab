@@ -125,6 +125,10 @@ i32 main(int argc, char *argv[]) {
   bool verbose = false;
   u64 user_seed = 0;
 
+  if (argc == 1) {
+    printUsageAndExit();
+  }
+
   // argument parsing
   for (i32 i = 1; i < argc; i++) {
     if (strncmp(argv[i], "--help", 6) == 0 || strncmp(argv[i], "-h", 2) == 0) {
@@ -138,7 +142,7 @@ i32 main(int argc, char *argv[]) {
         err = 1;
         goto deinit;
       }
-      ASSERT(num >= 0, "sample count must be positive");
+      ASSERT(num > 0, "sample count must be positive");
       ASSERT(num <= 200000000, "too many samples");
       sample_count = (u64)num;
 
