@@ -11,6 +11,8 @@
 #define EARTH_RADIUS 6372.8
 #define REGIONS_COUNT 32
 
+static u8 err = 0;
+
 typedef struct {
   f64 x0;
   f64 y0;
@@ -88,7 +90,8 @@ i32 main(int argc, char *argv[]) {
 
       if (errno != 0) {
         perror("argument error: sample_count:");
-        exit(1);
+        err = 1;
+        goto deinit;
       }
 
       errno = 0;
@@ -107,8 +110,16 @@ i32 main(int argc, char *argv[]) {
 
   FILE *samples_file = fopen("samples.json", "w+");
   if (!samples_file) {
-    perror("fopen: samples.json file");
-    exit(1);
+    perror("fopen: samples.json coordinates file");
+    err = 1;
+    goto deinit;
+  }
+
+  FILE *haversine_file = fopen("results.bin", "w+");
+  if (!samples_file) {
+    perror("fopen: haversine results binary file");
+    err = 1;
+    goto deinit;
   }
 
   // pair generation
@@ -154,7 +165,10 @@ i32 main(int argc, char *argv[]) {
   }
   fprintf(samples_file, "]}");
 
-  free(samples);
-  fclose(samples_file);
+deinit:
+  if (samples) free(samples);
+  if (samples_file) fclose(samples_file);
+  if (haversine_file) fclose(haversine_file);
+  if (err) return R_FAILURE;
   return R_SUCCESS;
 }
