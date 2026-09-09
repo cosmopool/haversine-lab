@@ -64,9 +64,34 @@ static const Region regions[REGIONS_COUNT] = {
     {.x_min = -75, .x_max = 81, .y_min = -28, .y_max = 8},
     {.x_min = -125, .x_max = -78, .y_min = -38, .y_max = 78},
 };
+void printUsage(FILE *out) {
+  if (!out) out = stdout;
+  fprintf(out, "Usage: ./generator <sample_count> [OPTIONS]\n");
+  fprintf(out, "\n");
+  fprintf(out, "Generate reproducible haversine coordinate pairs and reference distances.\n");
+  fprintf(out, "Pairs are distributed across %d regions -> %s.json + %s.bin\n", REGIONS_COUNT, FILE_NAME, FILE_NAME);
+  fprintf(out, "\n");
+  fprintf(out, "Arguments:\n");
+  fprintf(out, "  sample_count        Number of pairs to generate (required, 0..200000000)\n");
+  fprintf(out, "\n");
+  fprintf(out, "Options:\n");
+  fprintf(out, "  -v, --verbose       Print each pair and haversine distance to stdout\n");
+  fprintf(out, "  -s, --seed <num>    Base RNG seed (non-negative integer, default: 0)\n");
+  fprintf(out, "  -h, --help          Show this help and exit\n");
+  fprintf(out, "\n");
+  fprintf(out, "Output:\n");
+  fprintf(out, "  %s.json        JSON: {\"pairs\": [{\"x0\":, \"y0\":, \"x1\":, \"y1\":}, ...]}\n", FILE_NAME);
+  fprintf(out, "  %s.bin         Binary f64 haversine distances (earth radius %.1f km)\n", FILE_NAME, (f64)EARTH_RADIUS);
+  fprintf(out, "\n");
+  fprintf(out, "Examples:\n");
+  fprintf(out, "  ./generator 1000\n");
+  fprintf(out, "  ./generator 100000 --seed 42\n");
+  fprintf(out, "  ./generator 100000 --seed 42 --verbose\n");
+  fprintf(out, "  ./generator 500 -s 123 -v\n");
+}
 
 void printUsageAndExit() {
-  printf("usage: ./cli [sample_count] [--verbose / -v] [--seed [number]]\n");
+  printUsage(stderr);
   exit(1);
 }
 
@@ -102,6 +127,11 @@ i32 main(int argc, char *argv[]) {
 
   // argument parsing
   for (i32 i = 1; i < argc; i++) {
+    if (strncmp(argv[i], "--help", 6) == 0 || strncmp(argv[i], "-h", 2) == 0) {
+      printUsage(stdout);
+      goto deinit;
+    }
+
     if (i == 1) {
       i64 num = 0;
       if (parseInt(argv[i], &num) != 0) {
