@@ -196,7 +196,9 @@ i32 main(int argc, char *argv[]) {
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   if (pair_per_region == 0) pair_per_region = 1;
   if (verbose) printf("pairs per region: %d\n", pair_per_region);
-  fprintf(samples_file, "{\"pairs\": [\n");
+  fprintf(samples_file, "{\n");
+  fprintf(samples_file, "\"seed\": %ld,\n", user_seed);
+  fprintf(samples_file, "\"pairs\": [\n");
   for (u32 i = 0; i < sample_count; i++) {
     // select region
     if (i % pair_per_region == 0) {
