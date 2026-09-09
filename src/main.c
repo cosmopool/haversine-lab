@@ -55,8 +55,8 @@ void printUsageAndExit() {
   exit(1);
 }
 
-f64 randomFloat(f64 max, f64 min) {
-  f64 res = ((max - min) * ((float)rand() / RAND_MAX)) + min;
+f64 randomFloat(f64 max, f64 min, u32 *seed) {
+  f64 res = ((max - min) * ((float)rand_r(seed) / RAND_MAX)) + min;
   return res;
 }
 
@@ -96,7 +96,7 @@ i32 main(int argc, char *argv[]) {
   bzero(pairs, pair_count);
 
   u32 vec_size = 2;
-  u8 r_idx = 0;
+  u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   printf("pairs per region: %d\n", pair_per_region);
   for (u32 i = 0; i < sample_count; i += vec_size) {
@@ -104,7 +104,6 @@ i32 main(int argc, char *argv[]) {
     if (i % pair_per_region == 0) {
       r_idx++;
       r_idx %= REGIONS_COUNT;
-      printf("region: %d\n", r_idx);
     }
     Region region = regions[r_idx];
 
@@ -113,9 +112,11 @@ i32 main(int argc, char *argv[]) {
     u32 x1 = idx + 0;
     u32 y1 = idx + 1;
 
-    // pair 1
-    pairs[x1] = randomFloat(region.x_max, region.x_min);
-    pairs[y1] = randomFloat(region.y_max, region.y_min);
+    // pair
+    u32 x_seed = region.x_max + region.x_min + (u32)sample_count + i;
+    u32 y_seed = region.y_max + region.y_min + (u32)sample_count + i;
+    pairs[x1] = randomFloat(region.x_max, region.x_min, &x_seed);
+    pairs[y1] = randomFloat(region.y_max, region.y_min, &y_seed);
     printf("x: %f\ty: %f\n", pairs[x1], pairs[y1]);
     ASSERT(pairs[x1] >= -180 && pairs[x1] <= 180, "between x range");
     ASSERT(pairs[y1] >= -90 && pairs[y1] <= 90, "between y range");
