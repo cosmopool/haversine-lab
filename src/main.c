@@ -105,11 +105,17 @@ i32 main(int argc, char *argv[]) {
   Sample *samples = (Sample *)malloc(sample_count * sizeof(Sample));
   bzero(samples, sample_count);
 
+  FILE *samples_file = fopen("samples.json", "w+");
+  if (!samples_file) {
+    perror("fopen: samples.json file");
+    exit(1);
+  }
+
   // pair generation
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   printf("pairs per region: %d\n", pair_per_region);
-  printf("{\"pairs\": [\n");
+  fprintf(samples_file, "{\"pairs\": [\n");
   for (u32 i = 0; i < sample_count; i++) {
     // select region
     if (i % pair_per_region == 0) {
@@ -139,14 +145,16 @@ i32 main(int argc, char *argv[]) {
 
     // haversine
     s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
-    printf("{x0: %f, y0: %f, x1: %f, y1: %f, hs: %f}", s.x0, s.y0, s.x1, s.y1, s.hs);
-    if (i != sample_count - 1) printf(",");
-    printf("\n");
+    fprintf(samples_file, "{\"x0\": %f, \"y0\": %f, \"x1\": %f, \"y1\": %f}", s.x0, s.y0, s.x1, s.y1);
+    printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
+    if (i != sample_count - 1) fprintf(samples_file, ",");
+    fprintf(samples_file, "\n");
 
     samples[i] = s;
   }
-  printf("]}");
+  fprintf(samples_file, "]}");
 
   free(samples);
+  fclose(samples_file);
   return R_SUCCESS;
 }
