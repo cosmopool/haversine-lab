@@ -106,10 +106,10 @@ i32 main(int argc, char *argv[]) {
   bzero(samples, sample_count);
 
   // pair generation
-  u32 vec_size = 2;
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   printf("pairs per region: %d\n", pair_per_region);
+  printf("{\"pairs\": [\n");
   for (u32 i = 0; i < sample_count; i++) {
     // select region
     if (i % pair_per_region == 0) {
@@ -139,10 +139,13 @@ i32 main(int argc, char *argv[]) {
 
     // haversine
     s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
-    printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
+    printf("{x0: %f, y0: %f, x1: %f, y1: %f, hs: %f}", s.x0, s.y0, s.x1, s.y1, s.hs);
+    if (i != sample_count - 1) printf(",");
+    printf("\n");
 
     samples[i] = s;
   }
+  printf("]}");
 
   free(samples);
   return R_SUCCESS;
