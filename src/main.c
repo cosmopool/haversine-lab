@@ -66,7 +66,7 @@ static const Region regions[REGIONS_COUNT] = {
 };
 
 void printUsageAndExit() {
-  printf("usage: ./cli [sample_count]\n");
+  printf("usage: ./cli [sample_count] [--verbose / -v] [--seed [number]]\n");
   exit(1);
 }
 
