@@ -114,7 +114,7 @@ typedef struct String {
  * @see mcl_stringNewC()
  * @return A new String struct containing the provided string data
  */
-inline String mclStringNew(usize len, const char *str) {
+static inline String mclStringNew(usize len, const char *str) {
   assert(len > 0);
   String s = {len, str};
   return (s);
@@ -128,7 +128,7 @@ inline String mclStringNew(usize len, const char *str) {
  * @see mcl_stringNew()
  * @return A new String struct containing the provided string data
  */
-inline String mclStringNewC(const char *str) {
+static inline String mclStringNewC(const char *str) {
   usize len = strlen(str);
   String s = {len, str};
   return s;

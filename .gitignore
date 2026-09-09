@@ -1,4 +1,5 @@
 generator
 processor
+tests/json_test
 *.json
 *.bin
