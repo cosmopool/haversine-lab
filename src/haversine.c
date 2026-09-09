@@ -1,4 +1,5 @@
 #include "core.h"
+
 #include <math.h>
 
 static f64 hsSquare(f64 n) {
@@ -22,7 +23,7 @@ static f64 hsReferenceHaversine(f64 x0, f64 y0, f64 x1, f64 y1, f64 earth_radius
   lat1 = hsRadiansFromDegrees(lat1);
   lat2 = hsRadiansFromDegrees(lat2);
 
-  f64 a = hsSquare(sin(dlat/2)) + cos(lat1)*cos(lat2)*hsSquare(sin(dlon/2));
+  f64 a = hsSquare(sin(dlat / 2)) + cos(lat1) * cos(lat2) * hsSquare(sin(dlon / 2));
   f64 c = 2 * asin(sqrt(a));
 
   f64 res = earth_radius * c;
