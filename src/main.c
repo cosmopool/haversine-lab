@@ -95,11 +95,12 @@ i32 main(int argc, char *argv[]) {
   f64 *pairs = (f64 *)malloc(pair_count * sizeof(f64));
   bzero(pairs, pair_count);
 
+  // pair generation
   u32 vec_size = 2;
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   printf("pairs per region: %d\n", pair_per_region);
-  for (u32 i = 0; i < sample_count; i += vec_size) {
+  for (u32 i = 0; i < sample_count; i++) {
     // select region
     if (i % pair_per_region == 0) {
       r_idx++;
