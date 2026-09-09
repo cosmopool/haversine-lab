@@ -7,9 +7,57 @@
 #include <strings.h>
 #include <unistd.h>
 
+typedef struct {
+  i8 x_min;
+  i8 x_max;
+  i8 y_min;
+  i8 y_max;
+} Region;
+
+#define REGIONS_COUNT 32
+static const Region regions[REGIONS_COUNT] = {
+    {.x_min = -39, .x_max = -113, .y_min = -7, .y_max = 17},
+    {.x_min = 126, .x_max = 99, .y_min = -47, .y_max = 56},
+    {.x_min = -8, .x_max = -92, .y_min = -32, .y_max = 64},
+    {.x_min = 79, .x_max = 43, .y_min = -77, .y_max = 72},
+    {.x_min = 100, .x_max = 19, .y_min = 0, .y_max = 19},
+    {.x_min = -69, .x_max = 53, .y_min = -32, .y_max = 47},
+    {.x_min = -127, .x_max = -118, .y_min = -42, .y_max = 69},
+    {.x_min = 127, .x_max = 63, .y_min = -17, .y_max = 82},
+    {.x_min = -85, .x_max = 15, .y_min = -72, .y_max = 59},
+    {.x_min = 88, .x_max = 3, .y_min = -48, .y_max = 5},
+    {.x_min = -17, .x_max = -103, .y_min = -66, .y_max = 48},
+    {.x_min = -87, .x_max = 120, .y_min = -42, .y_max = 3},
+    {.x_min = -12, .x_max = -127, .y_min = -64, .y_max = 66},
+    {.x_min = -56, .x_max = 29, .y_min = -50, .y_max = 79},
+    {.x_min = 118, .x_max = -96, .y_min = -58, .y_max = 61},
+    {.x_min = -61, .x_max = -102, .y_min = -50, .y_max = 83},
+    {.x_min = -56, .x_max = -93, .y_min = -46, .y_max = 19},
+    {.x_min = 103, .x_max = -98, .y_min = -32, .y_max = 38},
+    {.x_min = -38, .x_max = 55, .y_min = -49, .y_max = 20},
+    {.x_min = -79, .x_max = 74, .y_min = -74, .y_max = 81},
+    {.x_min = -90, .x_max = -120, .y_min = -1, .y_max = 84},
+    {.x_min = -45, .x_max = 66, .y_min = -63, .y_max = 20},
+    {.x_min = 104, .x_max = -125, .y_min = -78, .y_max = 71},
+    {.x_min = 90, .x_max = -85, .y_min = -85, .y_max = 46},
+    {.x_min = -36, .x_max = -125, .y_min = -30, .y_max = 87},
+    {.x_min = 93, .x_max = 24, .y_min = -43, .y_max = 7},
+    {.x_min = -96, .x_max = -109, .y_min = -38, .y_max = 68},
+    {.x_min = 0, .x_max = 36, .y_min = -9, .y_max = 11},
+    {.x_min = -23, .x_max = 13, .y_min = -89, .y_max = 83},
+    {.x_min = 106, .x_max = 70, .y_min = -7, .y_max = 73},
+    {.x_min = -75, .x_max = 81, .y_min = -28, .y_max = 8},
+    {.x_min = -125, .x_max = -78, .y_min = -38, .y_max = 78},
+};
+
 void printUsageAndExit() {
   printf("usage: ./cli [sample_count]\n");
   exit(1);
+}
+
+f64 randomFloat(f64 max, f64 min) {
+  f64 res = ((max - min) * ((float)rand() / RAND_MAX)) + min;
+  return res;
 }
 
 i32 main(int argc, char *argv[]) {
@@ -46,6 +94,32 @@ i32 main(int argc, char *argv[]) {
   u64 pair_count = sample_count * 2;
   f64 *pairs = (f64 *)malloc(pair_count * sizeof(f64));
   bzero(pairs, pair_count);
+
+  u32 vec_size = 2;
+  u8 r_idx = 0;
+  u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
+  printf("pairs per region: %d\n", pair_per_region);
+  for (u32 i = 0; i < sample_count; i += vec_size) {
+    // select region
+    if (i % pair_per_region == 0) {
+      r_idx++;
+      r_idx %= REGIONS_COUNT;
+      printf("region: %d\n", r_idx);
+    }
+    Region region = regions[r_idx];
+
+    // generate coordinate pair
+    u32 idx = i * vec_size;
+    u32 x1 = idx + 0;
+    u32 y1 = idx + 1;
+
+    // pair 1
+    pairs[x1] = randomFloat(region.x_max, region.x_min);
+    pairs[y1] = randomFloat(region.y_max, region.y_min);
+    printf("x: %f\ty: %f\n", pairs[x1], pairs[y1]);
+    ASSERT(pairs[x1] >= -180 && pairs[x1] <= 180, "between x range");
+    ASSERT(pairs[y1] >= -90 && pairs[y1] <= 90, "between y range");
+  }
 
   free(pairs);
   return R_SUCCESS;
