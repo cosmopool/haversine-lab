@@ -60,6 +60,38 @@ GREATEST_TEST parse_object_with_consecutive_newlines(void) {
   GREATEST_PASS();
 }
 
+// --- string: valid cases ---
+
+GREATEST_TEST alphanumeric_string_passes(void) {
+  String s = mclStringNewC("{\"abcd1234\": \"a1\"}");
+  GREATEST_ASSERT_EQ(false, jsonParse(s));
+  GREATEST_PASS();
+}
+
+// --- string: invalid cases ---
+
+GREATEST_TEST unterminated_string_key_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"abcd}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\"")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"abcd\"")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST missing_colon_after_key_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"abcd\"}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"abcd\" \"a1\"}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(mclStringNewC("{\"a\" 1}")));
+  GREATEST_PASS();
+}
+
+// --- suites ---
+
+GREATEST_SUITE(string_parsing) {
+  GREATEST_RUN_TEST(alphanumeric_string_passes);
+  GREATEST_RUN_TEST(unterminated_string_key_fails);
+  GREATEST_RUN_TEST(missing_colon_after_key_fails);
+}
+
 GREATEST_SUITE(empty_object_suite) {
   GREATEST_RUN_TEST(empty_object_bare_passes);
   GREATEST_RUN_TEST(empty_object_with_inner_space_passes);
@@ -76,5 +108,6 @@ GREATEST_MAIN_DEFS();
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   GREATEST_RUN_SUITE(empty_object_suite);
+  GREATEST_RUN_SUITE(string_parsing);
   GREATEST_MAIN_END();
 }

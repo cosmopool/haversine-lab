@@ -57,6 +57,15 @@ static u8 psConsume(Parser *p) {
   return c;
 }
 
+static bool psExpectNext(Parser p, u8 exp) {
+  u8 next = psPeek(p);
+  if (exp == next) return true;
+  if (!SUPPRESS_ERRORS) {
+    fprintf(stderr, "ERROR: invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
+  }
+  return false;
+}
+
 static bool psEquals(u8 actual, u8 exp) {
   if (exp == actual) return true;
   if (!SUPPRESS_ERRORS) {
@@ -72,6 +81,15 @@ static void psConsumeWhitespace(Parser *p) {
   }
 }
 
+static bool psConsumeString(Parser *p) {
+  u8 current = psCurrent(*p);
+  psEquals(current, '"');
+  while (current != '\0' && current != ':') {
+    current = psConsume(p);
+  }
+  return true;
+}
+
 bool jsonParse(String json) {
   Parser p = {.data = (u8 *)json.data, .len = json.len, .cursor = 0};
 
@@ -83,6 +101,17 @@ bool jsonParse(String json) {
   while (current != '\0' && current != '}') {
     psConsumeWhitespace(&p);
     current = psConsume(&p);
+    switch (current) {
+    // parse a key
+    case '"':
+      if (!psConsumeString(&p)) return false;
+      psConsumeWhitespace(&p);
+      if (!psExpectNext(p, ':')) return false;
+      break;
+
+    case ':':
+      break;
+    }
   }
   if (current != '}') return false;
 
