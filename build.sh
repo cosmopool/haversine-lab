@@ -8,5 +8,6 @@ cc -o generator src/main.c \
    -Werror \
    -Wpointer-arith \
    -Wcast-align \
-   -Wunreachable-code
+   -Wunreachable-code \
+   -lm
 

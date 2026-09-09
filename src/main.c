@@ -1,4 +1,5 @@
 #include "core.h"
+#include "haversine.c"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -7,6 +8,17 @@
 #include <strings.h>
 #include <unistd.h>
 
+#define EARTH_RADIUS 6372.8
+#define REGIONS_COUNT 32
+
+typedef struct {
+  f64 x0;
+  f64 y0;
+  f64 x1;
+  f64 y1;
+  f64 hs;
+} Sample;
+
 typedef struct {
   i8 x_min;
   i8 x_max;
@@ -14,7 +26,6 @@ typedef struct {
   i8 y_max;
 } Region;
 
-#define REGIONS_COUNT 32
 static const Region regions[REGIONS_COUNT] = {
     {.x_min = -39, .x_max = -113, .y_min = -7, .y_max = 17},
     {.x_min = 126, .x_max = 99, .y_min = -47, .y_max = 56},
@@ -91,9 +102,8 @@ i32 main(int argc, char *argv[]) {
     printUsageAndExit();
   }
 
-  u64 pair_count = sample_count * 2;
-  f64 *pairs = (f64 *)malloc(pair_count * sizeof(f64));
-  bzero(pairs, pair_count);
+  Sample *samples = (Sample *)malloc(sample_count * sizeof(Sample));
+  bzero(samples, sample_count);
 
   // pair generation
   u32 vec_size = 2;
@@ -108,21 +118,32 @@ i32 main(int argc, char *argv[]) {
     }
     Region region = regions[r_idx];
 
-    // generate coordinate pair
-    u32 idx = i * vec_size;
-    u32 x1 = idx + 0;
-    u32 y1 = idx + 1;
+    // coordinate pair indexes
+    Sample s = {0};
 
-    // pair
-    u32 x_seed = region.x_max + region.x_min + (u32)sample_count + i;
-    u32 y_seed = region.y_max + region.y_min + (u32)sample_count + i;
-    pairs[x1] = randomFloat(region.x_max, region.x_min, &x_seed);
-    pairs[y1] = randomFloat(region.y_max, region.y_min, &y_seed);
-    printf("x: %f\ty: %f\n", pairs[x1], pairs[y1]);
-    ASSERT(pairs[x1] >= -180 && pairs[x1] <= 180, "between x range");
-    ASSERT(pairs[y1] >= -90 && pairs[y1] <= 90, "between y range");
+    // pair 1
+    u32 x0_seed = region.x_max + region.x_min + (u32)sample_count + i;
+    u32 y0_seed = region.y_max + region.y_min + (u32)sample_count + i;
+    s.x0 = randomFloat(region.x_max, region.x_min, &x0_seed);
+    s.y0 = randomFloat(region.y_max, region.y_min, &y0_seed);
+    ASSERT(s.x0 >= -180 && s.x0 <= 180, "between x range");
+    ASSERT(s.y0 >= -90 && s.y0 <= 90, "between y range");
+
+    // pair 2
+    u32 x1_seed = region.x_max + region.x_min + (u32)sample_count + i;
+    u32 y1_seed = region.y_max + region.y_min + (u32)sample_count + i;
+    s.x1 = randomFloat(region.x_max, region.x_min, &x1_seed);
+    s.y1 = randomFloat(region.y_max, region.y_min, &y1_seed);
+    ASSERT(s.x1 >= -180 && s.x1 <= 180, "between x range");
+    ASSERT(s.y1 >= -90 && s.y1 <= 90, "between y range");
+
+    // haversine
+    s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
+    printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
+
+    samples[i] = s;
   }
 
-  free(pairs);
+  free(samples);
   return R_SUCCESS;
 }
