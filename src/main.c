@@ -188,6 +188,8 @@ i32 main(int argc, char *argv[]) {
     goto deinit;
   }
 
+  f64 haversine_sum = {0};
+
   // pair generation
   u32 haversine_file_cursor = 0;
   u32 r_idx = 0;
@@ -223,6 +225,8 @@ i32 main(int argc, char *argv[]) {
 
     // haversine
     s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
+    haversine_sum += s.hs;
+    if (verbose) printf("haversine sum: %f\n", haversine_sum);
 
     // save results to file
     u32 written = fwrite(&haversine_file_cursor, 1, sizeof(s.hs), haversine_file);
@@ -239,6 +243,9 @@ i32 main(int argc, char *argv[]) {
     samples[i] = s;
   }
   fprintf(samples_file, "]}");
+
+  printf("haversine sum: %f\n", haversine_sum);
+  printf("haversine average: %f\n", haversine_sum / sample_count);
 
 deinit:
   if (samples) free(samples);
