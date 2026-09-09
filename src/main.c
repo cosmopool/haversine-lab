@@ -217,6 +217,8 @@ i32 main(int argc, char *argv[]) {
     s.y0 = randomFloat(region.y_max, region.y_min, &y0_seed);
     ASSERT(s.x0 >= -180 && s.x0 <= 180, "between x range");
     ASSERT(s.y0 >= -90 && s.y0 <= 90, "between y range");
+    ASSERT(s.x0 >= region.x_min && s.x0 <= region.x_max, "between region x range");
+    ASSERT(s.y0 >= region.y_min && s.y0 <= region.y_max, "between region y range");
 
     // pair 2
     u32 x1_seed = user_seed + (u32)sample_count + i + 1;
@@ -225,6 +227,8 @@ i32 main(int argc, char *argv[]) {
     s.y1 = randomFloat(region.y_max, region.y_min, &y1_seed);
     ASSERT(s.x1 >= -180 && s.x1 <= 180, "between x range");
     ASSERT(s.y1 >= -90 && s.y1 <= 90, "between y range");
+    ASSERT(s.x1 >= region.x_min && s.x1 <= region.x_max, "between region x range");
+    ASSERT(s.y1 >= region.y_min && s.y1 <= region.y_max, "between region y range");
 
     // haversine
     s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
