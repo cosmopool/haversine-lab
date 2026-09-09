@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <unistd.h>
 
@@ -74,28 +75,39 @@ f64 randomFloat(f64 max, f64 min, u32 *seed) {
   return res;
 }
 
+u32 parseInt(const char *str, i64 *out) {
+  errno = 0;
+  char *end;
+  const i64 num = strtol(str, &end, 10);
+  *out = num;
+
+  if (end == str) {
+    printf("argument error: must provide number \n");
+    printUsageAndExit();
+  }
+
+  if (errno != 0) {
+    perror("argument error:");
+    return 1;
+  }
+
+  errno = 0;
+  return 0;
+}
+
 i32 main(int argc, char *argv[]) {
   u64 sample_count = 0;
+  bool verbose = false;
+  u64 user_seed = 0;
 
   // argument parsing
   for (i32 i = 1; i < argc; i++) {
     if (i == 1) {
-      errno = 0;
-      char *end;
-      const i64 num = strtol(argv[i], &end, 10);
-
-      if (end == argv[i]) {
-        printf("must provide sample_count\n");
-        printUsageAndExit();
-      }
-
-      if (errno != 0) {
-        perror("argument error: sample_count:");
+      i64 num = 0;
+      if (parseInt(argv[i], &num) != 0) {
         err = 1;
         goto deinit;
       }
-
-      errno = 0;
       ASSERT(num >= 0, "sample count must be positive");
       ASSERT(num <= 200000000, "too many samples");
       sample_count = (u64)num;
@@ -103,7 +115,26 @@ i32 main(int argc, char *argv[]) {
       continue;
     }
 
-    printUsageAndExit();
+    else if (strncmp(argv[i], "--verbose", 9) == 0 || strncmp(argv[i], "-v", 2) == 0) {
+      verbose = true;
+      continue;
+    }
+
+    else if (strncmp(argv[i], "--seed", 6) == 0 || strncmp(argv[i], "-s", 2) == 0) {
+      i++;
+      i64 seed = 0;
+      if (parseInt(argv[i], &seed) != 0) {
+        err = 1;
+        goto deinit;
+      }
+      ASSERT(seed >= 0, "provided seed must be positive");
+      user_seed = (u64)seed;
+      continue;
+    }
+
+    else {
+      printUsageAndExit();
+    }
   }
 
   Sample *samples = (Sample *)malloc(sample_count * sizeof(Sample));
@@ -141,16 +172,16 @@ i32 main(int argc, char *argv[]) {
     Sample s = {0};
 
     // pair 1
-    u32 x0_seed = region.x_max + region.x_min + (u32)sample_count + i;
-    u32 y0_seed = region.y_max + region.y_min + (u32)sample_count + i;
+    u32 x0_seed = user_seed + (u32)sample_count + i + 0;
+    u32 y0_seed = user_seed + (u32)sample_count + i + 0;
     s.x0 = randomFloat(region.x_max, region.x_min, &x0_seed);
     s.y0 = randomFloat(region.y_max, region.y_min, &y0_seed);
     ASSERT(s.x0 >= -180 && s.x0 <= 180, "between x range");
     ASSERT(s.y0 >= -90 && s.y0 <= 90, "between y range");
 
     // pair 2
-    u32 x1_seed = region.x_max + region.x_min + (u32)sample_count + i;
-    u32 y1_seed = region.y_max + region.y_min + (u32)sample_count + i;
+    u32 x1_seed = user_seed + (u32)sample_count + i + 1;
+    u32 y1_seed = user_seed + (u32)sample_count + i + 1;
     s.x1 = randomFloat(region.x_max, region.x_min, &x1_seed);
     s.y1 = randomFloat(region.y_max, region.y_min, &y1_seed);
     ASSERT(s.x1 >= -180 && s.x1 <= 180, "between x range");
@@ -167,7 +198,7 @@ i32 main(int argc, char *argv[]) {
       goto deinit;
     }
     fprintf(samples_file, "{\"x0\": %f, \"y0\": %f, \"x1\": %f, \"y1\": %f}", s.x0, s.y0, s.x1, s.y1);
-    printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
+    if (verbose) printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
     if (i != sample_count - 1) fprintf(samples_file, ",");
     fprintf(samples_file, "\n");
 
