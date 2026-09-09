@@ -109,14 +109,14 @@ i32 main(int argc, char *argv[]) {
   Sample *samples = (Sample *)malloc(sample_count * sizeof(Sample));
   bzero(samples, sample_count);
 
-  FILE *samples_file = fopen(FILE_NAME".json", "w+");
+  FILE *samples_file = fopen(FILE_NAME ".json", "w+");
   if (!samples_file) {
     perror("fopen: samples.json coordinates file");
     err = 1;
     goto deinit;
   }
 
-  FILE *haversine_file = fopen(FILE_NAME".bin", "w+");
+  FILE *haversine_file = fopen(FILE_NAME ".bin", "w+");
   if (!samples_file) {
     perror("fopen: haversine results binary file");
     err = 1;
@@ -124,6 +124,7 @@ i32 main(int argc, char *argv[]) {
   }
 
   // pair generation
+  u32 haversine_file_cursor = 0;
   u32 r_idx = 0;
   u32 pair_per_region = (u32)(sample_count / REGIONS_COUNT);
   printf("pairs per region: %d\n", pair_per_region);
@@ -157,6 +158,14 @@ i32 main(int argc, char *argv[]) {
 
     // haversine
     s.hs = hsReferenceHaversine(s.x0, s.y0, s.x1, s.y1, EARTH_RADIUS);
+
+    // save results to file
+    u32 written = fwrite(&haversine_file_cursor, 1, sizeof(s.hs), haversine_file);
+    if (written == 0) {
+      printf("not able to write haversine result to binary file\n");
+      err = 1;
+      goto deinit;
+    }
     fprintf(samples_file, "{\"x0\": %f, \"y0\": %f, \"x1\": %f, \"y1\": %f}", s.x0, s.y0, s.x1, s.y1);
     printf("x0: %f, y0: %f, x1: %f, y1: %f, hs: %f\n", s.x0, s.y0, s.x1, s.y1, s.hs);
     if (i != sample_count - 1) fprintf(samples_file, ",");
