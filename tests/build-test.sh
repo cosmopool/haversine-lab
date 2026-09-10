@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 cd "$(dirname "$0")"
-echo "building json_test..."
+printf "building json_test..."
 cc -o json_test src/json_test.c \
    -g -O0 -fno-omit-frame-pointer -DDEBUG \
    -Wall \
@@ -11,9 +11,11 @@ cc -o json_test src/json_test.c \
    -Wcast-align \
    -Wunreachable-code \
    -lm
-if [ "$1" = "--build-only" ]; then
-  echo "build ok (not running json_test)"
-  exit 0
+
+if [ "$1" = "--run" ]; then
+  printf "running json_test...\n"
+  ./json_test -v
+else
+  printf " success!\n"
+  echo "to also run the tests, use: '$0 --run'"
 fi
-echo "running json_test..."
-./json_test -v
