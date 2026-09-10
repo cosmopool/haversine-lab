@@ -41,11 +41,11 @@ static u8 psPeek(Parser p) {
 }
 
 static u8 psConsume(Parser *p) {
-  u8 c = psCurrent(*p);
   if (p->cursor < p->len) {
     p->cursor++;
     p->line_offset++;
   }
+  u8 c = psCurrent(*p);
   if (c == '\n') {
     p->line_offset = 0;
     // skip consecutive newlines
@@ -83,8 +83,9 @@ static void psConsumeWhitespace(Parser *p) {
 
 static bool psConsumeString(Parser *p) {
   u8 current = psCurrent(*p);
+  ASSERT(current == '"', "string must start with open \"");
   while ((current = psConsume(p)) != '\0' && current != '"') {
-    if (isalpha(current)) {
+    if (isalpha(current) || isdigit(current)) {
       continue;
     }
 
@@ -131,7 +132,21 @@ static bool psConsumeString(Parser *p) {
         break;
       }
     }
+
+    else {
+      if (!SUPPRESS_ERRORS) {
+        fprintf(stderr, "ERROR: invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
+      }
+      return false;
+    }
   }
+  if (current != '"') {
+    if (!SUPPRESS_ERRORS) {
+      fprintf(stderr, "ERROR: invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
+    }
+    return false;
+  }
+  psConsume(p);
   return true;
 }
 
@@ -139,13 +154,10 @@ bool jsonParse(String json) {
   Parser p = {.data = (u8 *)json.data, .len = json.len, .cursor = 0};
 
   psConsumeWhitespace(&p);
-  u8 initial = psConsume(&p);
-  if (!psEquals(initial, '{')) return false;
+  if (!psEquals(psCurrent(p), '{')) return false;
 
-  u8 current = initial;
-  while (current != '\0' && current != '}') {
-    psConsumeWhitespace(&p);
-    current = psConsume(&p);
+  u8 current = psCurrent(p);
+  while ((current = psCurrent(p)) != '\0' && current != '}') {
     switch (current) {
     // parse a key
     case '"':
@@ -156,23 +168,35 @@ bool jsonParse(String json) {
 
     // parse a value
     case ':':
+      psConsume(&p);
       psConsumeWhitespace(&p);
-      switch (current = psConsume(&p)) {
+      switch (psCurrent(p)) {
       case '"':
         if (!psConsumeString(&p)) return false;
         break;
       }
       psConsumeWhitespace(&p);
-      if (psEquals(psCurrent(p), '}')) break;
-      if (!psEquals(psCurrent(p), ',')) return false;
+      u8 current = psCurrent(p);
+      if (psEquals(current, '}')) break;
+      if (!psEquals(current, ',')) return false;
+      break;
+
+    case '}':
+      psConsume(&p);
+      psConsumeWhitespace(&p);
+      if ((psConsume(&p)) != '\0') return false;
+      return true;
+
+    case '{':
+    case ',':
+      psConsume(&p);
+      psConsumeWhitespace(&p);
       break;
     }
   }
-  if (current != '}') return false;
 
-  psConsumeWhitespace(&p);
-  if ((current = psConsume(&p)) != '\0') return false;
-  if (p.cursor != p.len) return false;
+  if ((psConsume(&p)) != '\0') return false;
+  ASSERT(p.cursor <= p.len, "cursor should be truncated by len");
 
   return true;
 }
