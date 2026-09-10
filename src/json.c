@@ -75,7 +75,13 @@ static bool psEquals(u8 actual, u8 exp) {
 }
 
 static void psConsumeWhitespace(Parser *p) {
-  while (isspace(psCurrent(*p))) {
+  while (p->cursor < p->len) {
+    u8 current = psCurrent(*p);
+    bool is_space = current == ' ' ||
+                    current == '\n' ||
+                    current == '\r' ||
+                    current == '\t';
+    if (!is_space) break;
     p->cursor++;
     p->line_offset++;
   }
@@ -153,11 +159,13 @@ static bool psConsumeString(Parser *p) {
 bool jsonParse(String json) {
   Parser p = {.data = (u8 *)json.data, .len = json.len, .cursor = 0};
 
+  // must be at least an empty object '{}'
+  if (p.len < 2) return false;
   psConsumeWhitespace(&p);
   if (!psEquals(psCurrent(p), '{')) return false;
 
-  u8 current = psCurrent(p);
-  while ((current = psCurrent(p)) != '\0' && current != '}') {
+  u8 current = {0};
+  while ((current = psCurrent(p)) != '\0') {
     switch (current) {
     // parse a key
     case '"':
@@ -184,7 +192,7 @@ bool jsonParse(String json) {
     case '}':
       psConsume(&p);
       psConsumeWhitespace(&p);
-      if ((psConsume(&p)) != '\0') return false;
+      if (p.cursor != p.len) return false;
       return true;
 
     case '{':
@@ -196,7 +204,8 @@ bool jsonParse(String json) {
   }
 
   if ((psConsume(&p)) != '\0') return false;
-  ASSERT(p.cursor <= p.len, "cursor should be truncated by len");
+  if (p.data[p.cursor - 1] != '}') return false;
+  ASSERT(p.cursor = p.len, "cursor should be truncated by len");
 
   return true;
 }
