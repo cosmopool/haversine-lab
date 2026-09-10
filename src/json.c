@@ -83,7 +83,6 @@ static void psConsumeWhitespace(Parser *p) {
 
 static bool psConsumeString(Parser *p) {
   u8 current = psCurrent(*p);
-  psEquals(current, '"');
   while ((current = psConsume(p)) != '\0' && current != '"') {
     if (isalpha(current)) {
       continue;
@@ -152,11 +151,20 @@ bool jsonParse(String json) {
     case '"':
       if (!psConsumeString(&p)) return false;
       psConsumeWhitespace(&p);
-      current = psConsume(&p);
-      if (!psEquals(current, ':')) return false;
+      if (!psEquals(psCurrent(p), ':')) return false;
       break;
 
+    // parse a value
     case ':':
+      psConsumeWhitespace(&p);
+      switch (current = psConsume(&p)) {
+      case '"':
+        if (!psConsumeString(&p)) return false;
+        break;
+      }
+      psConsumeWhitespace(&p);
+      if (psEquals(psCurrent(p), '}')) break;
+      if (!psEquals(psCurrent(p), ',')) return false;
       break;
     }
   }
