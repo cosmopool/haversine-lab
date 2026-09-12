@@ -153,6 +153,44 @@ static bool psConsumeString(Parser *p) {
   return true;
 }
 
+static bool psConsumeExponent(Parser *p, u32 beginning) {
+  (void)beginning;
+  u32 start = p->cursor;
+  u32 end = start;
+  u8 current = psConsume(p);
+  while (current != '}' && current != ',' && !isspace(current)) {
+    if (current == 'e' || current == 'E') {
+      psError("%d:%d:invalid number: exponent cannot have more then one 'e' character", p->line, p->line_offset);
+      return false;
+    }
+
+    else if (isdigit(current)) {
+      // ignore and go to next iteration
+    }
+
+    else if (current == '+' || current == '-') {
+      u8 next = psPeek(*p);
+      if (!isdigit(next)) {
+        psError("%d:%d:invalid number: exponent cannot end with sign '%c'", p->line, p->line_offset, current);
+        return false;
+      }
+    }
+
+    else {
+      psError("%d:%d:invalid number: forbidden character in exponent '%c'", p->line, p->line_offset, current);
+      return false;
+    }
+
+    end = p->cursor;
+    current = psConsume(p);
+  }
+  if (end == start) {
+    psError("%d:%d:invalid number: exponent must have one or more digits after 'e' character", p->line, p->line_offset);
+    return false;
+  }
+  return true;
+}
+
 static bool psConsumeFraction(Parser *p, u32 beginning) {
   (void)beginning;
   u32 start = p->cursor;
@@ -166,6 +204,10 @@ static bool psConsumeFraction(Parser *p, u32 beginning) {
 
     else if (isdigit(current)) {
       // ignore and go to next iteration
+    }
+
+    else if (current == 'e' || current == 'E') {
+      return psConsumeExponent(p, beginning);
     }
 
     else {
@@ -200,6 +242,12 @@ static bool psConsumeNumber(Parser *p) {
     // fraction case
     else if (current == '.') {
       if (!psConsumeFraction(p, start)) return false;
+      break;
+    }
+
+    // exponent case
+    else if (current == 'e' || current == 'E') {
+      if (!psConsumeExponent(p, start)) return false;
       break;
     }
 

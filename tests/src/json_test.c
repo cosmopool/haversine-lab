@@ -206,6 +206,52 @@ GREATEST_TEST fraction_value_fails(void) {
   GREATEST_PASS();
 }
 
+// --- value is exponent: valid cases ---
+// NOTE: exp-part is ("e" / "E") ["-" / "+"] 1*DIGIT per JSON number grammar.
+// It may follow an int-part (e.g. 1e10) or a frac-part (e.g. 1.5e10).
+
+GREATEST_TEST exponent_value_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1e10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1E10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1e+10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1e-10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1E+10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1E-10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 0e1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 123e45}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1.5e10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 3.14E-2}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 0.5e+3}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\":0e1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\" : 1e10 }")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST multi_pair_exponent_values_pass(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1e10, \"b\": 2.5E-3}")));
+  GREATEST_PASS();
+}
+
+// --- value is exponent: invalid cases ---
+// NOTE: exp-part requires one or more digits after optional sign;
+// extra 'e's, dots, spaces, trailing junk, and leading zeros in the
+// int-part are rejected.
+
+GREATEST_TEST exponent_value_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1e}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1E}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1e+}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1e-}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1ee10}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1e1.5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1ea}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1e 10}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": e10}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 01e10}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1.5e}")));
+  GREATEST_PASS();
+}
+
 // --- unicode escape (\uHHHH): valid cases ---
 // NOTE: C string literals need "\\u" so the compiler emits a literal
 // backslash + 'u' instead of a C universal-character escape.
@@ -301,6 +347,9 @@ GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(fraction_value_passes);
   GREATEST_RUN_TEST(multi_pair_fraction_values_pass);
   GREATEST_RUN_TEST(fraction_value_fails);
+  GREATEST_RUN_TEST(exponent_value_passes);
+  GREATEST_RUN_TEST(multi_pair_exponent_values_pass);
+  GREATEST_RUN_TEST(exponent_value_fails);
   GREATEST_RUN_TEST(unicode_escape_in_key_passes);
   GREATEST_RUN_TEST(unicode_escape_truncated_fails);
   GREATEST_RUN_TEST(unicode_escape_non_hex_fails);
