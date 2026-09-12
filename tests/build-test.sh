@@ -14,8 +14,12 @@ cc -o json_test src/json_test.c \
 
 if [ "$1" = "--run" ]; then
   printf "running json_test...\n"
-  ./json_test -v
+  if [ "$2" = "-v" ]; then
+    ./json_test -v
+  else
+    ./json_test
+  fi
 else
   printf " success!\n"
-  echo "to also run the tests, use: '$0 --run'"
+  echo "to also run the tests, use: '$0 --run [-v]'"
 fi
