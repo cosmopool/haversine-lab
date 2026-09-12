@@ -153,10 +153,41 @@ static bool psConsumeString(Parser *p) {
   return true;
 }
 
+static bool psConsumeFraction(Parser *p, u32 beginning) {
+  (void)beginning;
+  u32 start = p->cursor;
+  u32 end = start;
+  u8 current = psConsume(p);
+  while (current != '}' && current != ',' && !isspace(current)) {
+    if (current == '.') {
+      psError("%d:%d:invalid number: fraction cannot have more then one '.'", p->line, p->line_offset);
+      return false;
+    }
+
+    else if (isdigit(current)) {
+      // ignore and go to next iteration
+    }
+
+    else {
+      psError("%d:%d:invalid number: forbidden character in fraction '%c'", p->line, p->line_offset, current);
+      return false;
+    }
+
+    end = p->cursor;
+    current = psConsume(p);
+  }
+  if (end == start) {
+    psError("%d:%d:invalid number: fraction must have one or more digits after '.'", p->line, p->line_offset);
+    return false;
+  }
+  return true;
+}
+
 static bool psConsumeNumber(Parser *p) {
+  u32 start = p->cursor;
+  u32 end = start;
   u8 current = psCurrent(*p);
   while (current != '}' && current != ',' && !isspace(current)) {
-    // fraction case
     if (current == '0') {
       u8 next = psPeek(*p);
       if (isdigit(next)) return false;
@@ -166,11 +197,21 @@ static bool psConsumeNumber(Parser *p) {
     else if (isdigit(current)) {
     }
 
+    // fraction case
+    else if (current == '.') {
+      if (!psConsumeFraction(p, start)) return false;
+      break;
+    }
+
     else {
       return false;
     }
+    end = p->cursor;
     current = psConsume(p);
   }
+  // TODO: remove once start actually parsing the fraction
+  (void)start;
+  (void)end;
   return true;
 }
 

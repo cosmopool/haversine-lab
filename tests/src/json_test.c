@@ -168,6 +168,44 @@ GREATEST_TEST positive_integer_value_fails(void) {
   GREATEST_PASS();
 }
 
+// --- value is fraction: valid cases ---
+// NOTE: frac-part is "." 1*DIGIT per JSON number grammar.
+// The int-part follows the same rule as integers (0 | [1-9][0-9]*),
+// but the frac-part may contain leading zeros (e.g. 1.02).
+
+GREATEST_TEST fraction_value_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 0.5}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 0.0}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 3.14}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 123.456}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1.02}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 0.007}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\":0.5}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\" : 3.14 }")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST multi_pair_fraction_values_pass(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": 1.5, \"b\": 2.25}")));
+  GREATEST_PASS();
+}
+
+// --- value is fraction: invalid cases ---
+// NOTE: a dot must have digits on both sides; leading zeros in the
+// int-part and extra dots / trailing junk are rejected.
+
+GREATEST_TEST fraction_value_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1.}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": .5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 01.5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 00.5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1..2}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1.2.3}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1.2a}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1. 2}")));
+  GREATEST_PASS();
+}
+
 // --- unicode escape (\uHHHH): valid cases ---
 // NOTE: C string literals need "\\u" so the compiler emits a literal
 // backslash + 'u' instead of a C universal-character escape.
@@ -260,6 +298,9 @@ GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(positive_integer_value_passes);
   GREATEST_RUN_TEST(multi_pair_integer_values_pass);
   GREATEST_RUN_TEST(positive_integer_value_fails);
+  GREATEST_RUN_TEST(fraction_value_passes);
+  GREATEST_RUN_TEST(multi_pair_fraction_values_pass);
+  GREATEST_RUN_TEST(fraction_value_fails);
   GREATEST_RUN_TEST(unicode_escape_in_key_passes);
   GREATEST_RUN_TEST(unicode_escape_truncated_fails);
   GREATEST_RUN_TEST(unicode_escape_non_hex_fails);
