@@ -156,6 +156,27 @@ static bool psConsumeString(Parser *p) {
   return true;
 }
 
+static bool psConsumeNumber(Parser *p) {
+  u8 current = psCurrent(*p);
+  while (current != '}' && current != ',' && !isspace(current)) {
+    // fraction case
+    if (current == '0') {
+      u8 next = psPeek(*p);
+      if (isdigit(next)) return false;
+    }
+
+    // integer case
+    else if (isdigit(current)) {
+    }
+
+    else {
+      return false;
+    }
+    current = psConsume(p);
+  }
+  return true;
+}
+
 bool jsonParse(String json) {
   Parser p = {.data = (u8 *)json.data, .len = json.len, .cursor = 0};
 
@@ -182,6 +203,13 @@ bool jsonParse(String json) {
       case '"':
         if (!psConsumeString(&p)) return false;
         break;
+
+      case '-':
+      case '0' ... '9':
+        if (!psConsumeNumber(&p)) return false;
+        break;
+
+      default: return false;
       }
       psConsumeWhitespace(&p);
       u8 current = psCurrent(p);

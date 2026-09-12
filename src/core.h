@@ -103,6 +103,18 @@ typedef struct String {
   const char *data;
 } String;
 
+/**
+ * Instantiates a String from a string literal at compile time.
+ * The length is computed with sizeof, so no strlen() call is made and the
+ * result is a constant expression usable in static/global initializers.
+ * Only pass a string literal: on a `char *` sizeof yields the pointer size,
+ * and on a char array it would include any trailing bytes past the content.
+ * The literal is referenced, not copied.
+ * @param lit A string literal, e.g. "my string"
+ * @see mclStringNewC()
+ */
+#define MCL_STRING(lit) ((String){sizeof("" lit "") - 1, (lit)})
+
 #include <assert.h>
 #include <string.h>
 
