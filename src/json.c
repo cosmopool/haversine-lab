@@ -19,6 +19,17 @@
 #define SUPPRESS_ERRORS false
 #endif
 
+static void psError(const char *fmt, ...) {
+  if (SUPPRESS_ERRORS) return;
+  va_list args;
+  va_start(args, fmt);
+  fprintf(stderr, "%s", "[ERROR] ");
+  vfprintf(stderr, fmt, args);
+  fprintf(stderr, "\n");
+  fflush(stderr);
+  va_end(args);
+}
+
 typedef struct {
   u8 *data;
   u32 len;
@@ -60,17 +71,13 @@ static u8 psConsume(Parser *p) {
 // static bool psExpectNext(Parser p, u8 exp) {
 //   u8 next = psPeek(p);
 //   if (exp == next) return true;
-//   if (!SUPPRESS_ERRORS) {
-//     fprintf(stderr, "ERROR: invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
-//   }
+//   psError("invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
 //   return false;
 // }
 
 static bool psEquals(u8 actual, u8 exp) {
   if (exp == actual) return true;
-  if (!SUPPRESS_ERRORS) {
-    fprintf(stderr, "ERROR: invalid object: expected '%c' got '%c'.\n", exp, actual);
-  }
+  psError("invalid object: expected '%c' got '%c'.\n", exp, actual);
   return false;
 }
 
@@ -96,9 +103,7 @@ static bool psConsumeString(Parser *p) {
     }
 
     else if (iscntrl(current)) {
-      if (!SUPPRESS_ERRORS) {
-        fprintf(stderr, "ERROR: invalid string: control character '%c' at %d:%d.\n", current, p->line, p->line_offset);
-      }
+      psError("invalid string: control character '%c' at %d:%d.\n", current, p->line, p->line_offset);
       return false;
     }
 
@@ -123,33 +128,25 @@ static bool psConsumeString(Parser *p) {
             continue;
 
           default:
-            if (!SUPPRESS_ERRORS) {
-              fprintf(stderr, "ERROR: invalid string: invalid hex code '%c' at %d:%d.\n", current, p->line, p->line_offset);
-            }
+            psError("invalid string: invalid hex code '%c' at %d:%d.\n", current, p->line, p->line_offset);
             return false;
           }
         }
         break;
 
       default:
-        if (!SUPPRESS_ERRORS) {
-          fprintf(stderr, "ERROR: invalid string: unsupported escape '%c' at %d:%d.\n", current, p->line, p->line_offset);
-        }
+        psError("invalid string: unsupported escape '%c' at %d:%d.\n", current, p->line, p->line_offset);
         break;
       }
     }
 
     else {
-      if (!SUPPRESS_ERRORS) {
-        fprintf(stderr, "ERROR: invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
-      }
+      psError("invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
       return false;
     }
   }
   if (current != '"') {
-    if (!SUPPRESS_ERRORS) {
-      fprintf(stderr, "ERROR: invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
-    }
+    psError("invalid string: missing closing '\"' at %d:%d", p->line, p->line_offset);
     return false;
   }
   psConsume(p);
