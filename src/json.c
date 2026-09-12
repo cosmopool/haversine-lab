@@ -181,8 +181,8 @@ static bool psConsumeExponent(Parser *p, u32 beginning) {
       return false;
     }
 
-    end = p->cursor;
     current = psConsume(p);
+    end = p->cursor;
   }
   if (end == start) {
     psError("%d:%d:invalid number: exponent must have one or more digits after 'e' character", p->line, p->line_offset);
@@ -215,8 +215,8 @@ static bool psConsumeFraction(Parser *p, u32 beginning) {
       return false;
     }
 
-    end = p->cursor;
     current = psConsume(p);
+    end = p->cursor;
   }
   if (end == start) {
     psError("%d:%d:invalid number: fraction must have one or more digits after '.'", p->line, p->line_offset);
@@ -252,8 +252,8 @@ static bool psConsumeNumber(Parser *p) {
     else {
       return false;
     }
-    end = p->cursor;
     current = psConsume(p);
+    end = p->cursor;
   }
   // TODO: remove once start actually parsing the fraction
   (void)start;
