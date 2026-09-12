@@ -385,18 +385,6 @@ GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(unterminated_string_value_fails);
   GREATEST_RUN_TEST(unicode_escape_in_value_fails);
   GREATEST_RUN_TEST(embedded_nul_in_value_fails);
-  GREATEST_RUN_TEST(positive_integer_value_passes);
-  GREATEST_RUN_TEST(multi_pair_integer_values_pass);
-  GREATEST_RUN_TEST(positive_integer_value_fails);
-  GREATEST_RUN_TEST(fraction_value_passes);
-  GREATEST_RUN_TEST(multi_pair_fraction_values_pass);
-  GREATEST_RUN_TEST(fraction_value_fails);
-  GREATEST_RUN_TEST(exponent_value_passes);
-  GREATEST_RUN_TEST(multi_pair_exponent_values_pass);
-  GREATEST_RUN_TEST(exponent_value_fails);
-  GREATEST_RUN_TEST(negative_number_value_passes);
-  GREATEST_RUN_TEST(multi_pair_negative_values_pass);
-  GREATEST_RUN_TEST(negative_number_value_fails);
   GREATEST_RUN_TEST(unicode_escape_in_key_passes);
   GREATEST_RUN_TEST(unicode_escape_truncated_fails);
   GREATEST_RUN_TEST(unicode_escape_non_hex_fails);
@@ -404,6 +392,30 @@ GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(control_chars_in_key_fail);
   GREATEST_RUN_TEST(control_chars_in_value_fail);
   GREATEST_RUN_TEST(embedded_nul_in_key_fails);
+}
+
+GREATEST_SUITE(integer_suite) {
+  GREATEST_RUN_TEST(positive_integer_value_passes);
+  GREATEST_RUN_TEST(multi_pair_integer_values_pass);
+  GREATEST_RUN_TEST(positive_integer_value_fails);
+}
+
+GREATEST_SUITE(fraction_suite) {
+  GREATEST_RUN_TEST(fraction_value_passes);
+  GREATEST_RUN_TEST(multi_pair_fraction_values_pass);
+  GREATEST_RUN_TEST(fraction_value_fails);
+}
+
+GREATEST_SUITE(exponent_suite) {
+  GREATEST_RUN_TEST(exponent_value_passes);
+  GREATEST_RUN_TEST(multi_pair_exponent_values_pass);
+  GREATEST_RUN_TEST(exponent_value_fails);
+}
+
+GREATEST_SUITE(negative_suite) {
+  GREATEST_RUN_TEST(negative_number_value_passes);
+  GREATEST_RUN_TEST(multi_pair_negative_values_pass);
+  GREATEST_RUN_TEST(negative_number_value_fails);
 }
 
 GREATEST_SUITE(empty_object_suite) {
@@ -423,5 +435,9 @@ int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   GREATEST_RUN_SUITE(empty_object_suite);
   GREATEST_RUN_SUITE(string_parsing);
+  GREATEST_RUN_SUITE(integer_suite);
+  GREATEST_RUN_SUITE(fraction_suite);
+  GREATEST_RUN_SUITE(exponent_suite);
+  GREATEST_RUN_SUITE(negative_suite);
   GREATEST_MAIN_END();
 }
