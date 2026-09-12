@@ -241,14 +241,12 @@ static bool psConsumeNumber(Parser *p) {
 
     // fraction case
     else if (current == '.') {
-      if (!psConsumeFraction(p, start)) return false;
-      break;
+      return psConsumeFraction(p, start);
     }
 
     // exponent case
     else if (current == 'e' || current == 'E') {
-      if (!psConsumeExponent(p, start)) return false;
-      break;
+      return psConsumeExponent(p, start);
     }
 
     else {
