@@ -68,13 +68,6 @@ static u8 psConsume(Parser *p) {
   return c;
 }
 
-// static bool psExpectNext(Parser p, u8 exp) {
-//   u8 next = psPeek(p);
-//   if (exp == next) return true;
-//   psError("invalid object: expected '%c' got '%c' at %d:%d\n", exp, next, p.line, p.line_offset);
-//   return false;
-// }
-
 static bool psEquals(u8 actual, u8 exp) {
   if (exp == actual) return true;
   psError("invalid object: expected '%c' got '%c'.\n", exp, actual);
