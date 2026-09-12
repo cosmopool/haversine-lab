@@ -252,6 +252,50 @@ GREATEST_TEST exponent_value_fails(void) {
   GREATEST_PASS();
 }
 
+// --- value is negative number: valid cases ---
+// NOTE: number is ["-"] int-part [frac-part] [exp-part] per JSON grammar.
+// Only a single leading "-" is allowed and it must precede a digit.
+
+GREATEST_TEST negative_number_value_passes(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -0}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -42}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -0.5}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -3.14}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -1e10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -1E-10}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -2.5E+3}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\":-1}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\" : -42 }")));
+  GREATEST_PASS();
+}
+
+GREATEST_TEST multi_pair_negative_values_pass(void) {
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -1, \"b\": 2}")));
+  GREATEST_ASSERT_EQ(true, jsonParse(MCL_STRING("{\"a\": -1.5, \"b\": -2e3}")));
+  GREATEST_PASS();
+}
+
+// --- value is negative number: invalid cases ---
+// NOTE: lone/trailing signs, double signs, signs after digits,
+// space after "-", and missing int/frac/exp digits are rejected.
+
+GREATEST_TEST negative_number_value_fails(void) {
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": --1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -.5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -01}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -01.5}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -1.}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -1e}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -1e+}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": - 1}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": -1a}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1-2}")));
+  GREATEST_ASSERT_EQ(false, jsonParse(MCL_STRING("{\"a\": 1+2}")));
+  GREATEST_PASS();
+}
+
 // --- unicode escape (\uHHHH): valid cases ---
 // NOTE: C string literals need "\\u" so the compiler emits a literal
 // backslash + 'u' instead of a C universal-character escape.
@@ -350,6 +394,9 @@ GREATEST_SUITE(string_parsing) {
   GREATEST_RUN_TEST(exponent_value_passes);
   GREATEST_RUN_TEST(multi_pair_exponent_values_pass);
   GREATEST_RUN_TEST(exponent_value_fails);
+  GREATEST_RUN_TEST(negative_number_value_passes);
+  GREATEST_RUN_TEST(multi_pair_negative_values_pass);
+  GREATEST_RUN_TEST(negative_number_value_fails);
   GREATEST_RUN_TEST(unicode_escape_in_key_passes);
   GREATEST_RUN_TEST(unicode_escape_truncated_fails);
   GREATEST_RUN_TEST(unicode_escape_non_hex_fails);

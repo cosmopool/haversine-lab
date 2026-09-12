@@ -249,6 +249,18 @@ static bool psConsumeNumber(Parser *p) {
       return psConsumeExponent(p, start);
     }
 
+    else if (current == '-') {
+      if (end != start) {
+        psError("%d:%d:invalid number: negative sign is only valid at the beginning of a number", p->line, p->line_offset);
+        return false;
+      }
+      u8 next = psPeek(*p);
+      if (!isdigit(next)) {
+        psError("%d:%d:invalid number: digits are expected after '-' character for a number", p->line, p->line_offset);
+        return false;
+      }
+    }
+
     else {
       return false;
     }
